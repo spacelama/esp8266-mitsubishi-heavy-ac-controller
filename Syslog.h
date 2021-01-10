@@ -1,1 +1,1 @@
-../template/Syslog.h
+../Syslog/src/Syslog.h
