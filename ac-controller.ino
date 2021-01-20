@@ -140,7 +140,7 @@ void sendIndexHTML() {
         "<body bgcolor=\""+bgcolor+"\"><h1>Loungeroom Air Conditioner</h1>"+
         error_str+
 
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "Power: "
         "<input type=\"radio\" id=\"0\" name=\"power\" value=\"0\" "+power_off_htmlstr+"onchange=\"this.form.submit()\">"
         "<label for=\"0\">Off</label>"
@@ -149,7 +149,7 @@ void sendIndexHTML() {
         "</form>"
         "<br>\n"
 
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"mode\">Mode:</label>"
         "<select name=\"mode\" id=\"mode\" onchange=\"this.form.submit()\">"
         "<option value=\"cool\" "+mode_iscool_htmlstr+">Cool</option>"
@@ -158,30 +158,30 @@ void sendIndexHTML() {
         "</select><br>\n"
         "</form>"
 
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_temp\">Temperature <span id=\"val_temp_html\">"+state.temp+"</span>:</label>"
         "<input type=\"range\" id=\"slider_temp\" name=\"temp\" min=\"18\" max=\"30\" value=\""+state.temp+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
         "</form>"
 
         //https://stackoverflow.com/questions/15935837/how-to-display-a-range-input-slider-vertically - but making it look OK would be a challenge
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_vdir\">Vdir <span id=\"val_vdir_html\" style=\"width:2em;display:inline-block;\">"+state.vdir+"</span>:</label>"
         "<input type=\"range\" "
         //style=\"-webkit-transform: rotate(90deg);-moz-transform: rotate(90deg);-o-transform: rotate(90deg);-ms-transform: rotate(90deg);transform: rotate(90deg);\"
         "id=\"slider_vdir\" name=\"vdir\" min=\"0\" max=\"6\" value=\""+state.vdir+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
         "</form>"
 
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_hdir\">Hdir <span id=\"val_hdir_html\" style=\"width:2em;display:inline-block;\">"+state.hdir+"</span>:</label>"
         "<input type=\"range\" id=\"slider_hdir\" name=\"hdir\" min=\"0\" max=\"6\" value=\""+state.hdir+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
         "</form>"
 
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_fan\">Fan speed <span id=\"val_fan_html\" style=\"width:2em;display:inline-block;\">"+fanspeed_str+"</span>:</label>"
         "<input type=\"range\" id=\"slider_fan\" name=\"fan\" min=\"0\" max=\"3\" value=\""+state.fanspeed+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
         "</form>"
 
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "Silent: "
         "<input type=\"radio\" id=\"0\" name=\"silent\" value=\"0\" "+silent_off_htmlstr+" onchange=\"this.form.submit()\">"
         "<label for=\"0\">Normal</label>"
@@ -190,7 +190,7 @@ void sendIndexHTML() {
         "</form>"
         "<br>\n"
 
-        "<form action=\"/do\" method=\"POST\">\n"
+        "<form action=\"do\" method=\"POST\">\n"
         "3D: "
         "<input type=\"radio\" id=\"0\" name=\"3d\" value=\"0\" "+_3d_off_htmlstr+" onchange=\"this.form.submit()\">"
         "<label for=\"0\">Normal</label>"
@@ -440,7 +440,7 @@ void http_do_and_redirect() {
     if (setParameters()) {
         updateAC();
     }
-    server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
+    server.sendHeader("Location",".");        // Add a header to respond with a new location for the browser to go to the home page again
     server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
 }
 
@@ -448,7 +448,7 @@ void http_forcedo_and_redirect() {
     if (setParameters(true)) {
         updateAC(); // always true with true above
     }
-    server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
+    server.sendHeader("Location",".");        // Add a header to respond with a new location for the browser to go to the home page again
     server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
 }
 
