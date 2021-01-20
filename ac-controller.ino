@@ -14,7 +14,7 @@
 
 #include "Switch.h"
 #include "template.h"
-String CODE_VERSION = "$Revision: 1.7 $";
+String CODE_VERSION = "$Revision: 1.9 $";
 
 #include <Syslog.h>
 #include <ESP_EEPROM.h>
@@ -54,11 +54,13 @@ void sendIndexHTML() {
     String _3d_str="", _3d_on_htmlstr="", _3d_off_htmlstr="";
     String fanspeed_str="";
     String buf="";
+    String bgcolor="";
 
     switch (state.power) {
       case POWER_OFF:
           power_str="off";
           power_off_htmlstr="checked=\"checked\"";
+          bgcolor="#777777";
           break;
       case POWER_ON:
           power_str="on";
@@ -66,20 +68,30 @@ void sendIndexHTML() {
           break;
       default:
           power_str="unknown";
+          bgcolor="#444444";
     }
 
     switch (state.mode) {
       case MODE_COOL:
           mode_str="cool";
           mode_iscool_htmlstr="selected=\"selected\"";
+          if (state.power == POWER_ON) {
+              bgcolor="#4444CC";
+          }
           break;
       case MODE_FAN:
           mode_str="fan";
           mode_isfan_htmlstr="selected=\"selected\"";
+          if (state.power == POWER_ON) {
+              bgcolor="#44CC44";
+          }
           break;
       case MODE_HEAT:
           mode_str="heat";
           mode_isheat_htmlstr="selected=\"selected\"";
+          if (state.power == POWER_ON) {
+              bgcolor="#CC4444";
+          }
           break;
       default:
           mode_str="unknown";
@@ -119,8 +131,13 @@ void sendIndexHTML() {
           fanspeed_str=String(state.fanspeed);
     }
 
-    buf = "<html><head><title>Loungeroom Air Conditioner</title></head>"
-        "<body><h1>Loungeroom Air Conditioner</h1>"+
+    buf = "<html>"
+        "<head>"
+        "<title>Loungeroom Air Conditioner</title>"
+        "<meta name=\"viewport\" content=\"width=max-device-width, user-scalable=yes, initial-scale=1.0\" />"
+        "<meta content=\"no-cache\" http-equiv=\"Pragma\" />"
+        "</head>"
+        "<body bgcolor=\""+bgcolor+"\"><h1>Loungeroom Air Conditioner</h1>"+
         error_str+
 
         "<form action=\"/do\" method=\"POST\">\n"
@@ -288,7 +305,7 @@ void updateAC() {
     heatpump.send(irSender, state.power, state.mode, state.fanspeed, state.temp, state.vdir, state.hdir, 0, state.silent, state._3d);
 }
 
-bool setParameters() {
+bool setParameters(bool force=false) {
     int temp_p = getArgValue("temp");
     int fan_p = getArgValue("fan");
     String mode_p = getArgValueStr("mode");
@@ -298,7 +315,7 @@ bool setParameters() {
     int silent_p = getArgValue("silent");
     int _3d_p = getArgValue("3d");
 
-    bool changed=false;
+    bool changed=force;
 
     if (mode_p != "") {
         syslog.log(LOG_INFO, "mode supplied");
@@ -427,31 +444,39 @@ void http_do_and_redirect() {
     server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
 }
 
+void http_forcedo_and_redirect() {
+    if (setParameters(true)) {
+        updateAC(); // always true with true above
+    }
+    server.sendHeader("Location","/");        // Add a header to respond with a new location for the browser to go to the home page again
+    server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
+}
+
 void http_ac_on() {
     state.mode=MODE_COOL;
     state.power=POWER_ON;
 
-    http_do_and_redirect();
+    http_forcedo_and_redirect();
 }
 
 void http_heater_on() {
     state.mode=MODE_HEAT;
     state.power=POWER_ON;
 
-    http_do_and_redirect();
+    http_forcedo_and_redirect();
 }
 
 void http_fan_on() {
     state.mode=MODE_FAN;
     state.power=POWER_ON;
 
-    http_do_and_redirect();
+    http_forcedo_and_redirect();
 }
 
 void http_off() {
     state.power=POWER_OFF;
 
-    http_do_and_redirect();
+    http_forcedo_and_redirect();
 }
 
 String http_uptime_stub() {
