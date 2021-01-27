@@ -18,12 +18,14 @@ String CODE_VERSION = "$Revision: 1.9 $";
 
 #include <Syslog.h>
 #include <ESP_EEPROM.h>
+#include <Arduino_JSON.h>
 unsigned long write_eeprom_time = 0;
 
 extern Syslog syslog;
 // defines pins numbers
 const byte IRLedPin = D1;
 const byte led = LED_BUILTIN;
+extern unsigned char ac_ajaxy_js[];
 
 ESP8266WebServer server(80);
 
@@ -199,85 +201,7 @@ void sendIndexHTML() {
         "</form>"
         "<br>\n"
 
-        "<script>\n\n"
-        "var slider_temp = document.getElementById(\"slider_temp\");\n"
-        "var val_temp_html = document.getElementById(\"val_temp_html\");\n"
-        "function set_temp_html(v) {\n"
-        "    val_temp_html.innerHTML = v;\n"
-        "}\n"
-        "slider_temp.oninput = function() {\n"
-        "    set_temp_html(this.value);\n"
-        "}\n"
-        "set_temp_html(slider_temp.value);\n\n"
-
-        "var slider_vdir = document.getElementById(\"slider_vdir\");\n"
-        "var val_vdir_html = document.getElementById(\"val_vdir_html\");\n"
-        "function set_vdir_html(v) {\n"
-        "    switch(v) {\n"
-        "      case \"0\":\n"
-        "        val_vdir_html.innerHTML = \"auto/manual\";\nbreak;\n"
-        "      case \"1\":\n"
-        "        val_vdir_html.innerHTML = \"swing\";\nbreak;\n"
-        "      case \"2\":\n"
-        "        val_vdir_html.innerHTML = \"up\";\nbreak;\n"
-        "      case \"3\":\n"
-        "        val_vdir_html.innerHTML = \"mup\";\nbreak;\n"
-        "      case \"4\":\n"
-        "        val_vdir_html.innerHTML = \"middle\";\nbreak;\n"
-        "      case \"5\":\n"
-        "        val_vdir_html.innerHTML = \"mdown\";\nbreak;\n"
-        "      case \"6\":\n"
-        "        val_vdir_html.innerHTML = \"down\";\nbreak;\n"
-        "      default:\n"
-        "        val_vdir_html.innerHTML = \"unknown\";\nbreak;\n"
-        "    }\n"
-        "}\n"
-        "slider_vdir.oninput = function() {\n"
-        "    set_vdir_html(this.value);\n"
-        "}\n"
-        "set_vdir_html(slider_vdir.value);\n\n"
-
-        "var slider_hdir = document.getElementById(\"slider_hdir\");\n"
-        "var val_hdir_html = document.getElementById(\"val_hdir_html\");\n"
-        "function set_hdir_html(v) {\n"
-        "    switch(v) {\n"
-        "      case \"0\":\n"
-        "        val_hdir_html.innerHTML = \"auto/manual\";\nbreak;\n"
-        "      case \"1\":\n"
-        "        val_hdir_html.innerHTML = \"swing\";\nbreak;\n"
-        "      case \"2\":\n"
-        "        val_hdir_html.innerHTML = \"middle\";\nbreak;\n"
-        "      case \"3\":\n"
-        "        val_hdir_html.innerHTML = \"left\";\nbreak;\n"
-        "      case \"4\":\n"
-        "        val_hdir_html.innerHTML = \"mleft\";\nbreak;\n"
-        "      case \"5\":\n"
-        "        val_hdir_html.innerHTML = \"mright\";\nbreak;\n"
-        "      case \"6\":\n"
-        "        val_hdir_html.innerHTML = \"right\";\nbreak;\n"
-        "      default:\n"
-        "        val_hdir_html.innerHTML = \"unknown\";\nbreak;\n"
-        "    }\n"
-        "}\n"
-        "slider_hdir.oninput = function() {\n"
-        "    set_hdir_html(this.value);\n"
-        "}\n"
-        "set_hdir_html(slider_hdir.value);\n\n"
-
-        "var slider_fan = document.getElementById(\"slider_fan\");\n"
-        "var val_fan_html = document.getElementById(\"val_fan_html\");\n"
-        "function set_fan_html(v) {\n"
-        "    if (v == 0) {\n"
-        "        val_fan_html.innerHTML = \"auto\";\n"
-        "    } else {\n"
-        "        val_fan_html.innerHTML = v;\n"
-        "    }\n"
-        "}\n"
-        "slider_fan.oninput = function() {\n"
-        "    set_fan_html(this.value);\n"
-        "}\n"
-        "set_fan_html(slider_fan.value);\n\n"
-
+        "<script type='text/javascript' src='ajaxy.js'></script>\n"
         "</script>"
         "</body></html>\n";
     error_str="";
@@ -487,6 +411,28 @@ void http_handle_not_found() {
     server.send(404, "text/plain", "File Not Found\n");
 }
 
+void srv_handle_ajax_js() {
+    server.send(200,"application/javascript", (char*)ac_ajaxy_js);
+}
+
+void srv_handle_ajax_get() {
+//    String res="{\"power\":\""+state.power+"\",\"mode\":
+    JSONVar state_json;
+
+    state_json["power"]     = state.power;
+    state_json["mode"]      = state.mode;
+    state_json["temp"]      = state.temp;
+    state_json["vdir"]      = state.vdir;
+    state_json["hdir"]      = state.hdir;
+    state_json["fanspeed"]  = state.fanspeed;
+    state_json["silent"]    = state.silent;
+    state_json["3d"]        = state._3d;
+
+    String jsonString = JSON.stringify(state_json);
+
+    server.send(200,"application/json", jsonString);
+}
+
 void setup_stub(void) {
     digitalWrite(D8, LOW);  // should be unused, reset pin, assign to known state
     digitalWrite(D4, HIGH); // should be unused, reset pin, assign to known state
@@ -517,6 +463,8 @@ void setup_stub(void) {
     server.on("/off",         http_off);
     server.on("/",            http_do);
     server.on("/do",          http_do_and_redirect);
+    server.on("/ajaxy.js",    srv_handle_ajax_js);
+    server.on("/get",         srv_handle_ajax_get);
 
     ledRamp(0,led_range,80,30);
 

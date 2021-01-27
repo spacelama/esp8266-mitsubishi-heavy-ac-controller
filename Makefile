@@ -1,5 +1,12 @@
 ESP_ADDR=ac
 
+#doesn't just let me have ac.ajaxy.js.cpp depend only on ac.ajaxy.js - just gets ignored.  Need to do this indirection thing
+ac.ajaxy.js.cpp.include : ac.ajaxy.js
+	xxd -i ac.ajaxy.js | sed 's/\([0-9a-f]\)$$/\0, 0x00/' > ac.ajaxy.js.cpp.include
+	touch ac.ajaxy.js.cpp
+
+#ac.ajaxy.js.cpp : ac.ajaxy.js.cpp.include
+
 include $(HOME)/Arduino/template/Makefile
 
 .DEFAULT_GOAL := ota
