@@ -162,7 +162,7 @@ void sendIndexHTML() {
 
         "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_temp\">Temperature <span id=\"val_temp_html\">"+state.temp+"</span>:</label>"
-        "<input type=\"range\" id=\"slider_temp\" name=\"temp\" min=\"18\" max=\"30\" value=\""+state.temp+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
+        "<div id=\"ajaxsetpointtemp\" style=\"display:inline\"></div>"
         "</form>"
 
         //https://stackoverflow.com/questions/15935837/how-to-display-a-range-input-slider-vertically - but making it look OK would be a challenge
@@ -200,8 +200,8 @@ void sendIndexHTML() {
         "<label for=\"1\">3D</label>"
         "</form>"
         "<br>\n"
-
-        "<script type='text/javascript' src='ajaxy.js'></script>\n"
+//FIXME:
+        "<script type='text/javascript' src='http://rather.puzzling.org/~tconnors/temp-ac.ajaxy.js'></script>\n"
         "</script>"
         "</body></html>\n";
     error_str="";
@@ -412,25 +412,28 @@ void http_handle_not_found() {
 }
 
 void srv_handle_ajax_js() {
-    server.send(200,"application/javascript", (char*)ac_ajaxy_js);
+    server.send(200, "application/javascript", (char*)ac_ajaxy_js);
 }
 
 void srv_handle_ajax_get() {
 //    String res="{\"power\":\""+state.power+"\",\"mode\":
     JSONVar state_json;
 
-    state_json["power"]     = state.power;
-    state_json["mode"]      = state.mode;
-    state_json["temp"]      = state.temp;
-    state_json["vdir"]      = state.vdir;
-    state_json["hdir"]      = state.hdir;
-    state_json["fanspeed"]  = state.fanspeed;
-    state_json["silent"]    = state.silent;
-    state_json["3d"]        = state._3d;
+    state_json["power"]        = state.power;
+    state_json["mode"]         = state.mode;
+    state_json["setpointtemp"] = state.temp;
+    state_json["vdir"]         = state.vdir;
+    state_json["hdir"]         = state.hdir;
+    state_json["fanspeed"]     = state.fanspeed;
+    state_json["silent"]       = state.silent;
+    state_json["3d"]           = state._3d;
 
     String jsonString = JSON.stringify(state_json);
 
-    server.send(200,"application/json", jsonString);
+    //FIXME: remove when debugged
+    syslog.log(LOG_INFO, "get: "+jsonString);
+
+    server.send(200, "application/json", jsonString);
 }
 
 void setup_stub(void) {
