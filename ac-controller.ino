@@ -25,7 +25,8 @@ extern Syslog syslog;
 // defines pins numbers
 const byte IRLedPin = D1;
 const byte led = LED_BUILTIN;
-extern unsigned char ac_ajaxy_js[];
+extern unsigned char ajaxy_ac_js[];
+extern unsigned char feedback_ac_js[];
 
 ESP8266WebServer server(80);
 
@@ -50,88 +51,7 @@ struct State {
 String error_str="";
 
 void sendIndexHTML() {
-    String mode_str, mode_iscool_htmlstr="", mode_isfan_htmlstr="", mode_isheat_htmlstr="";
-    String power_str="", power_on_htmlstr="", power_off_htmlstr="";
-    String silent_str="", silent_on_htmlstr="", silent_off_htmlstr="";
-    String _3d_str="", _3d_on_htmlstr="", _3d_off_htmlstr="";
-    String fanspeed_str="";
     String buf="";
-    String bgcolor="";
-
-    switch (state.power) {
-      case POWER_OFF:
-          power_str="off";
-          power_off_htmlstr="checked=\"checked\"";
-          bgcolor="#777777";
-          break;
-      case POWER_ON:
-          power_str="on";
-          power_on_htmlstr="checked=\"checked\"";
-          break;
-      default:
-          power_str="unknown";
-          bgcolor="#444444";
-    }
-
-    switch (state.mode) {
-      case MODE_COOL:
-          mode_str="cool";
-          mode_iscool_htmlstr="selected=\"selected\"";
-          if (state.power == POWER_ON) {
-              bgcolor="#4444CC";
-          }
-          break;
-      case MODE_FAN:
-          mode_str="fan";
-          mode_isfan_htmlstr="selected=\"selected\"";
-          if (state.power == POWER_ON) {
-              bgcolor="#44CC44";
-          }
-          break;
-      case MODE_HEAT:
-          mode_str="heat";
-          mode_isheat_htmlstr="selected=\"selected\"";
-          if (state.power == POWER_ON) {
-              bgcolor="#CC4444";
-          }
-          break;
-      default:
-          mode_str="unknown";
-    }
-
-    switch (state.silent) {
-      case 0:
-          silent_str="normal";
-          silent_off_htmlstr="checked=\"checked\"";
-          break;
-      case 1:
-          silent_str="silent";
-          silent_on_htmlstr="checked=\"checked\"";
-          break;
-      default:
-          silent_str="unknown";
-    }
-
-    switch (state._3d) {
-      case 0:
-          _3d_str="normal";
-          _3d_off_htmlstr="checked=\"checked\"";
-          break;
-      case 1:
-          _3d_str="3d";
-          _3d_on_htmlstr="checked=\"checked\"";
-          break;
-      default:
-          _3d_str="unknown";
-    }
-
-    switch (state.fanspeed) {
-      case 0:
-          fanspeed_str="auto";
-          break;
-      default:
-          fanspeed_str=String(state.fanspeed);
-    }
 
     buf = "<html>"
         "<head>"
@@ -139,70 +59,43 @@ void sendIndexHTML() {
         "<meta name=\"viewport\" content=\"width=max-device-width, user-scalable=yes, initial-scale=1.0\" />"
         "<meta content=\"no-cache\" http-equiv=\"Pragma\" />"
         "</head>"
-        "<body bgcolor=\""+bgcolor+"\"><h1>Loungeroom Air Conditioner</h1>"+
+        "<body><h1>Loungeroom Air Conditioner</h1>"+
         error_str+
 
-        "<form action=\"do\" method=\"POST\">\n"
         "Power: "
-        "<input type=\"radio\" id=\"0\" name=\"power\" value=\"0\" "+power_off_htmlstr+"onchange=\"this.form.submit()\">"
-        "<label for=\"0\">Off</label>"
-        "<input type=\"radio\" id=\"1\" name=\"power\" value=\"1\" "+power_on_htmlstr+"onchange=\"this.form.submit()\">"
-        "<label for=\"1\">On</label>"
-        "</form>"
+        "<div id=\"ajaxpower\" style=\"display:inline\">state.power</div>"
         "<br>\n"
 
-        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"mode\">Mode:</label>"
-        "<select name=\"mode\" id=\"mode\" onchange=\"this.form.submit()\">"
-        "<option value=\"cool\" "+mode_iscool_htmlstr+">Cool</option>"
-        "<option value=\"fan\" "+mode_isfan_htmlstr+">Fan</option>"
-        "<option value=\"heat\" "+mode_isheat_htmlstr+">Heat</option>"
-        "</select><br>\n"
-        "</form>"
+        "<div id=\"ajaxmode\" style=\"display:inline\">state.mode</div>"
+        "<br>\n"
 
-        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_temp\">Temperature <span id=\"val_temp_html\">"+state.temp+"</span>:</label>"
         "<div id=\"ajaxsetpointtemp\" style=\"display:inline\"></div>"
-        "</form>"
+        "<br>\n"
 
-        //https://stackoverflow.com/questions/15935837/how-to-display-a-range-input-slider-vertically - but making it look OK would be a challenge
-        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_vdir\">Vdir <span id=\"val_vdir_html\" style=\"width:2em;display:inline-block;\">"+state.vdir+"</span>:</label>"
-        "<input type=\"range\" "
-        //style=\"-webkit-transform: rotate(90deg);-moz-transform: rotate(90deg);-o-transform: rotate(90deg);-ms-transform: rotate(90deg);transform: rotate(90deg);\"
-        "id=\"slider_vdir\" name=\"vdir\" min=\"0\" max=\"6\" value=\""+state.vdir+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
-        "</form>"
+        "<div id=\"ajaxvdir\" style=\"display:inline\"></div>"
+        "<br>\n"
 
-        "<form action=\"do\" method=\"POST\">\n"
         "<label for=\"slider_hdir\">Hdir <span id=\"val_hdir_html\" style=\"width:2em;display:inline-block;\">"+state.hdir+"</span>:</label>"
-        "<input type=\"range\" id=\"slider_hdir\" name=\"hdir\" min=\"0\" max=\"6\" value=\""+state.hdir+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
-        "</form>"
+        "<div id=\"ajaxhdir\" style=\"display:inline\"></div>"
+        "<br>\n"
 
-        "<form action=\"do\" method=\"POST\">\n"
-        "<label for=\"slider_fan\">Fan speed <span id=\"val_fan_html\" style=\"width:2em;display:inline-block;\">"+fanspeed_str+"</span>:</label>"
-        "<input type=\"range\" id=\"slider_fan\" name=\"fan\" min=\"0\" max=\"3\" value=\""+state.fanspeed+"\" onmouseup=\"this.form.submit()\" ontouchend=\"this.form.submit()\">"
-        "</form>"
+        "<label for=\"slider_fan\">Fan speed <span id=\"val_fan_html\" style=\"width:2em;display:inline-block;\">"+state.fanspeed+"</span>:</label>"
+        "<div id=\"ajaxfanspeed\" style=\"display:inline\"></div>"
+        "<br>\n"
 
-        "<form action=\"do\" method=\"POST\">\n"
         "Silent: "
-        "<input type=\"radio\" id=\"0\" name=\"silent\" value=\"0\" "+silent_off_htmlstr+" onchange=\"this.form.submit()\">"
-        "<label for=\"0\">Normal</label>"
-        "<input type=\"radio\" id=\"1\" name=\"silent\" value=\"1\" "+silent_on_htmlstr+" onchange=\"this.form.submit()\">"
-        "<label for=\"1\">Silent</label>"
-        "</form>"
+        "<div id=\"ajaxsilent\" style=\"display:inline\">state.silent</div>"
         "<br>\n"
 
-        "<form action=\"do\" method=\"POST\">\n"
         "3D: "
-        "<input type=\"radio\" id=\"0\" name=\"3d\" value=\"0\" "+_3d_off_htmlstr+" onchange=\"this.form.submit()\">"
-        "<label for=\"0\">Normal</label>"
-        "<input type=\"radio\" id=\"1\" name=\"3d\" value=\"1\" "+_3d_on_htmlstr+" onchange=\"this.form.submit()\">"
-        "<label for=\"1\">3D</label>"
-        "</form>"
+        "<div id=\"ajax3d\" style=\"display:inline\">state._3d</div>"
         "<br>\n"
-//FIXME:
-        "<script type='text/javascript' src='http://rather.puzzling.org/~tconnors/temp-ac.ajaxy.js'></script>\n"
-        "</script>"
+
+        "<script type='text/javascript' src='ajaxy.js'></script>\n"
+        "<script type='text/javascript' src='feedback.js'></script>\n"
         "</body></html>\n";
     error_str="";
     server.send(200, "text/html", buf);
@@ -224,18 +117,17 @@ void updateAC() {
           mode_str="unknown";
     }
     syslog.logf(LOG_INFO, "Power: %i, Mode: %s, Temp: %i, Vdir: %i, Hdir: %i, FanSpeed: %i, Silent: %i, 3D: %i", state.power, mode_str, state.temp, state.vdir, state.hdir, state.fanspeed, state.silent, state._3d);
-    // FIXME: write these params to flash
-// Send the command
+    // Send the command
     heatpump.send(irSender, state.power, state.mode, state.fanspeed, state.temp, state.vdir, state.hdir, 0, state.silent, state._3d);
 }
 
 bool setParameters(bool force=false) {
-    int temp_p = getArgValue("temp");
-    int fan_p = getArgValue("fan");
-    String mode_p = getArgValueStr("mode");
     int power_p = getArgValue("power");
+    String mode_p = getArgValueStr("mode");
+    int temp_p = getArgValue("temp");
     int vdir_p = getArgValue("vdir");
     int hdir_p = getArgValue("hdir");
+    int fan_p = getArgValue("fan");
     int silent_p = getArgValue("silent");
     int _3d_p = getArgValue("3d");
 
@@ -353,6 +245,35 @@ bool setParameters(bool force=false) {
     return changed;
 }
 
+void srv_handle_ajax_js() {
+    server.send(200, "application/javascript", (char*)ajaxy_ac_js);
+}
+
+void srv_handle_feedback_js() {
+    server.send(200, "application/javascript", (char*)feedback_ac_js);
+}
+
+void srv_handle_ajax_get() {
+//    String res="{\"power\":\""+state.power+"\",\"mode\":
+    JSONVar state_json;
+
+    state_json["power"]        = state.power;
+    state_json["mode"]         = state.mode;
+    state_json["setpointtemp"] = state.temp;
+    state_json["vdir"]         = state.vdir;
+    state_json["hdir"]         = state.hdir;
+    state_json["fanspeed"]     = state.fanspeed;
+    state_json["silent"]       = state.silent;
+    state_json["3d"]           = state._3d;
+
+    String jsonString = JSON.stringify(state_json);
+
+    //FIXME: remove when debugged
+    syslog.log(LOG_INFO, "get: "+jsonString);
+
+    server.send(200, "application/json", jsonString);
+}
+
 void http_do() {
     if (setParameters()) {
         updateAC();
@@ -360,12 +281,12 @@ void http_do() {
     sendIndexHTML();
 }
 
-void http_do_and_redirect() {
+void http_do_action() {
+    Serial.println("do action called");
     if (setParameters()) {
         updateAC();
     }
-    server.sendHeader("Location",".");        // Add a header to respond with a new location for the browser to go to the home page again
-    server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
+    srv_handle_ajax_get();
 }
 
 void http_forcedo_and_redirect() {
@@ -411,31 +332,6 @@ void http_handle_not_found() {
     server.send(404, "text/plain", "File Not Found\n");
 }
 
-void srv_handle_ajax_js() {
-    server.send(200, "application/javascript", (char*)ac_ajaxy_js);
-}
-
-void srv_handle_ajax_get() {
-//    String res="{\"power\":\""+state.power+"\",\"mode\":
-    JSONVar state_json;
-
-    state_json["power"]        = state.power;
-    state_json["mode"]         = state.mode;
-    state_json["setpointtemp"] = state.temp;
-    state_json["vdir"]         = state.vdir;
-    state_json["hdir"]         = state.hdir;
-    state_json["fanspeed"]     = state.fanspeed;
-    state_json["silent"]       = state.silent;
-    state_json["3d"]           = state._3d;
-
-    String jsonString = JSON.stringify(state_json);
-
-    //FIXME: remove when debugged
-    syslog.log(LOG_INFO, "get: "+jsonString);
-
-    server.send(200, "application/json", jsonString);
-}
-
 void setup_stub(void) {
     digitalWrite(D8, LOW);  // should be unused, reset pin, assign to known state
     digitalWrite(D4, HIGH); // should be unused, reset pin, assign to known state
@@ -465,8 +361,9 @@ void setup_stub(void) {
     server.on("/fan_on",      http_fan_on);
     server.on("/off",         http_off);
     server.on("/",            http_do);
-    server.on("/do",          http_do_and_redirect);
+    server.on("/do",          http_do_action);
     server.on("/ajaxy.js",    srv_handle_ajax_js);
+    server.on("/feedback.js", srv_handle_feedback_js);
     server.on("/get",         srv_handle_ajax_get);
 
     ledRamp(0,led_range,80,30);

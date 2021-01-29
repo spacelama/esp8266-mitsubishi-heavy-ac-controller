@@ -1,9 +1,10 @@
 ESP_ADDR=ac
+#VERBOSE=true
 
 #doesn't just let me have ac.ajaxy.js.cpp depend only on ac.ajaxy.js - just gets ignored.  Need to do this indirection thing
-ac.ajaxy.js.cpp.include : ac.ajaxy.js
-	xxd -i ac.ajaxy.js | sed 's/\([0-9a-f]\)$$/\0, 0x00/' > ac.ajaxy.js.cpp.include
-	touch ac.ajaxy.js.cpp
+
+USER_SRC_PATTERN = |ac.js
+USER_RULES=Makefile.extras
 
 #ac.ajaxy.js.cpp : ac.ajaxy.js.cpp.include
 

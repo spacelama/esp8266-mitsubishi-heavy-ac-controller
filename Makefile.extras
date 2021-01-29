@@ -1,0 +1,4 @@
+$(BUILD_DIR)/%.ac.js.o: %.ac.js
+	echo $(<F)
+	xxd -i $< | sed 's/\([0-9a-f]\)$$/\0, 0x00/' > $(BUILD_DIR)/$<.cpp
+	$(CPP_COM) $(CPP_EXTRA) $(BUILD_DIR)/$<.cpp -o $@
