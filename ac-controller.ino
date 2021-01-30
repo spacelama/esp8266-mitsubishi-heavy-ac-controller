@@ -62,12 +62,20 @@ void sendIndexHTML() {
         "<body><h1>Loungeroom Air Conditioner</h1>"+
         error_str+
 
+        "Updated: "
+        "<div id=\"ajaxtime\" style=\"display:inline\"></div>"
+        "<br>\n"
+
+        "Current temperature: "
+        "<div id=\"ajaxtemp\" style=\"display:inline\"></div>"
+        "<br>\n"
+
         "Power: "
-        "<div id=\"ajaxpower\" style=\"display:inline\">state.power</div>"
+        "<div id=\"ajaxpower\" style=\"display:inline\">"+state.power+"</div>"
         "<br>\n"
 
         "<label for=\"mode\">Mode:</label>"
-        "<div id=\"ajaxmode\" style=\"display:inline\">state.mode</div>"
+        "<div id=\"ajaxmode\" style=\"display:inline\">"+state.mode+"</div>"
         "<br>\n"
 
         "<label for=\"slider_temp\">Temperature <span id=\"val_temp_html\">"+state.temp+"</span>:</label>"
@@ -87,11 +95,11 @@ void sendIndexHTML() {
         "<br>\n"
 
         "Silent: "
-        "<div id=\"ajaxsilent\" style=\"display:inline\">state.silent</div>"
+        "<div id=\"ajaxsilent\" style=\"display:inline\">"+state.silent+"</div>"
         "<br>\n"
 
         "3D: "
-        "<div id=\"ajax3d\" style=\"display:inline\">state._3d</div>"
+        "<div id=\"ajax3d\" style=\"display:inline\">"+state._3d+"</div>"
         "<br>\n"
 
         "<script type='text/javascript' src='ajaxy.js'></script>\n"
@@ -268,8 +276,7 @@ void srv_handle_ajax_get() {
 
     String jsonString = JSON.stringify(state_json);
 
-    //FIXME: remove when debugged
-    syslog.log(LOG_INFO, "get: "+jsonString);
+    //syslog.log(LOG_INFO, "get: "+jsonString);
 
     server.send(200, "application/json", jsonString);
 }

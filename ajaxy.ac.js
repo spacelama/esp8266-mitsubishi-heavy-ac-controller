@@ -2,7 +2,7 @@
 // http://www.perlmonks.org/?node_id=628681
 
 function createRequestObject() {
-    var req;
+    let req;
     if (window.XMLHttpRequest) { // Firefox, Safari, Opera...
         req = new XMLHttpRequest();
         //    alert('Detected a modern browser - very good!');
@@ -22,8 +22,10 @@ function createRequestObject() {
 
 function sendRequest(params) {
     // Make the XMLHttpRequest object
-    var oRequest = createRequestObject();
-    if (params) {
+    let oRequest = createRequestObject();
+    if (params=="currenttemp") {
+        oRequest.open('GET', 'https://rather.puzzling.org/weewx/data.json');
+    } else if (params) {
         // https://stackoverflow.com/questions/9713058/send-post-data-using-xmlhttprequest
         oRequest.open('POST', 'do');
         oRequest.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
@@ -38,7 +40,7 @@ function sendRequest(params) {
 function handleResponse(oResponse,action_response) {
     if(oResponse.readyState == 4) {
         if (oResponse.status == 200){
-            var response = oResponse.responseText; // Text returned FROM perl script
+            let response = oResponse.responseText; // Text returned FROM webserver
             if(response) { // UPDATE ajaxTest content
                 //                console.log("Got here3: "+response+"!");
                 eval(action_response);
@@ -60,8 +62,10 @@ var bgcolour_last;
 
 var bgcolour;
 
+var current_loungeroom_temp;
+
 function populate_power_field(power) {
-    var power_str="", power_on_htmlstr="", power_off_htmlstr="";
+    let power_str="", power_on_htmlstr="", power_off_htmlstr="";
 
     switch (power) {
     case 0:
@@ -93,14 +97,21 @@ function populate_power_field(power) {
 }
 
 function populate_mode_field(mode) {
-    var mode_str, mode_iscool_htmlstr="", mode_isfan_htmlstr="", mode_isheat_htmlstr="";
+    let mode_str, mode_iscool_htmlstr="", mode_isfan_htmlstr="", mode_isheat_htmlstr="";
 
     switch (mode) {
     case 3:
         mode_str="cool";
         mode_iscool_htmlstr="selected=\"selected\"";
         if (power_last == 1) {
-            bgcolour="#4444CC";
+            // if detect the current temp is such that AC isn't
+            // running, make the colour halfway between green (fan)
+            // and blue to indicate just blowing air
+            if (current_loungeroom_temp > setpointtemp_last) {
+                bgcolour="#4444CC";
+            } else {
+                bgcolour="#448888";
+            }
         }
         break;
     case 5:
@@ -114,7 +125,14 @@ function populate_mode_field(mode) {
         mode_str="heat";
         mode_isheat_htmlstr="selected=\"selected\"";
         if (power_last == 1) {
-            bgcolour="#CC4444";
+            // if detect the current temp is such that heater isn't
+            // running, make the colour halfway between green (fan)
+            // and red to indicate just blowing air
+            if (current_loungeroom_temp < setpointtemp_last) {
+                bgcolour="#CC4444";
+            } else {
+                bgcolour="#888844";
+            }
         }
         break;
     default:
@@ -178,7 +196,7 @@ function populate_hdir_field(hdir) {
 
 function populate_fan_field(fanspeed) {
     if (fanspeed != fanspeed_last) {
-        var fanspeed_str="";
+        let fanspeed_str="";
         switch (fanspeed) {
         case 0:
             fanspeed_str="auto";
@@ -199,7 +217,7 @@ function populate_fan_field(fanspeed) {
 }
 
 function populate_silent_field(silent) {
-    var silent_str="", silent_on_htmlstr="", silent_off_htmlstr="";
+    let silent_str="", silent_on_htmlstr="", silent_off_htmlstr="";
 
     if (silent != silent_last) {
         switch (silent) {
@@ -229,7 +247,7 @@ function populate_silent_field(silent) {
 }
 
 function populate_3d_field(_3d) {
-    var _3d_str="", _3d_on_htmlstr="", _3d_off_htmlstr="";
+    let _3d_str="", _3d_on_htmlstr="", _3d_off_htmlstr="";
 
     if (_3d != _3d_last) {
         switch (_3d) {
@@ -258,24 +276,34 @@ function populate_3d_field(_3d) {
     }
 }
 
+var last_updated=0;
 function parse_ajax(response) {
-    var obj = JSON.parse(response);
-    populate_power_field(obj.power);
-    populate_mode_field(obj.mode);
-    populate_temp_field(obj.setpointtemp);
-    populate_vdir_field(obj.vdir);
-    populate_hdir_field(obj.hdir);
-    populate_fan_field(obj.fanspeed);
-    populate_silent_field(obj.silent);
-    populate_3d_field(obj['3d']);
+    let obj = JSON.parse(response);
+    if (typeof obj.TLR !== 'undefined') {
+        current_loungeroom_temp=obj.TLR;
+        document.getElementById('ajaxtemp').innerHTML=obj.TLR;
+    } else {
+        populate_power_field(obj.power);
+        populate_temp_field(obj.setpointtemp);
+        populate_mode_field(obj.mode);
+        populate_vdir_field(obj.vdir);
+        populate_hdir_field(obj.hdir);
+        populate_fan_field(obj.fanspeed);
+        populate_silent_field(obj.silent);
+        populate_3d_field(obj['3d']);
 
-    //FIXME: if detect the current temp is such that AC/heater isn't running, make the colour halfway between green (fan) and red/blue to indicate just blowing air
-    if (bgcolour != bgcolour_last) {
-        document.body.style.backgroundColor=bgcolour;
-        bgcolour_last = bgcolour;
+        if (bgcolour != bgcolour_last) {
+            document.body.style.backgroundColor=bgcolour;
+            bgcolour_last = bgcolour;
+        }
+        last_updated=Date.now();
+        var locale = window.navigator.userLanguage || window.navigator.language;
+        var d = new Date();
+        var n = d.toLocaleString(locale);
+        document.getElementById('ajaxtime').innerHTML=n;
+
+        refresh_handlers();
     }
-
-    refresh_handlers();
 }
 
 var timer;
@@ -301,7 +329,16 @@ function setRefreshTimer() {
     }
 }
 function refreshStatus() {
+    let date=Date.now();
+    interval=(date-last_updated)/1000;
+    if (interval > 120) {
+        // grey out stale data
+        bgcolour="#222222";
+        document.body.style.backgroundColor=bgcolour;
+        bgcolour_last = bgcolour;
+    }
     setRefreshTimer();
+    sendRequest("currenttemp");
     sendRequest();
 }
 window.onload=function() {
