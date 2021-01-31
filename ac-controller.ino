@@ -72,35 +72,34 @@ void sendIndexHTML() {
 
         "Power: "
         "<div id=\"ajaxpower\" style=\"display:inline\">"+state.power+"</div>"
-        "<br>\n"
+        "<p></p>\n"
 
         "<label for=\"mode\">Mode:</label>"
         "<div id=\"ajaxmode\" style=\"display:inline\">"+state.mode+"</div>"
-        "<br>\n"
+        "<p></p>\n"
 
         "<label for=\"slider_temp\">Temperature <span id=\"val_temp_html\">"+state.temp+"</span>:</label>"
         "<div id=\"ajaxsetpointtemp\" style=\"display:inline\"></div>"
-        "<br>\n"
+        "<p></p>\n"
 
         "<label for=\"slider_vdir\">Vdir <span id=\"val_vdir_html\" style=\"width:2em;display:inline-block;\">"+state.vdir+"</span>:</label>"
         "<div id=\"ajaxvdir\" style=\"display:inline\"></div>"
-        "<br>\n"
+        "<p></p>\n"
 
         "<label for=\"slider_hdir\">Hdir <span id=\"val_hdir_html\" style=\"width:2em;display:inline-block;\">"+state.hdir+"</span>:</label>"
         "<div id=\"ajaxhdir\" style=\"display:inline\"></div>"
-        "<br>\n"
+        "<p></p>\n"
 
         "<label for=\"slider_fan\">Fan speed <span id=\"val_fan_html\" style=\"width:2em;display:inline-block;\">"+state.fanspeed+"</span>:</label>"
         "<div id=\"ajaxfanspeed\" style=\"display:inline\"></div>"
-        "<br>\n"
+        "<p></p>\n"
 
         "Silent: "
         "<div id=\"ajaxsilent\" style=\"display:inline\">"+state.silent+"</div>"
-        "<br>\n"
+        "<p></p>\n"
 
         "3D: "
         "<div id=\"ajax3d\" style=\"display:inline\">"+state._3d+"</div>"
-        "<br>\n"
 
         "<script type='text/javascript' src='ajaxy.js'></script>\n"
         "<script type='text/javascript' src='feedback.js'></script>\n"
