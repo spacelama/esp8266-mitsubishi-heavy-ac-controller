@@ -36,6 +36,8 @@ Circuit diagram for infrared emitter:
 
 ![Circuit Diagram](www.falstad.com_circuit_circuitjs.html.circuit-20190218-2119.circuitjs.png)
 
+(The source to generate that image is [here](www.falstad.com_circuit_circuitjs.html.circuit-20190218-2119.circuitjs.txt) and can be imported into [falstad's circuit generator](http://www.falstad.com/circuit/circuitjs.html).)
+
 I laid it out with these IO from the esp8266 board:
 
 ![esp8266 layout](esp8266-pinouts.jpg)
