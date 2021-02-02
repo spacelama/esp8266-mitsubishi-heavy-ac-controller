@@ -34,7 +34,7 @@ Run `make`
 
 Circuit diagram for infrared emitter:
 
-![Circuit Diagram](www.falstad.com_circuit_circuitjs.html:circuit-20190218-2119.circuitjs.png)
+![Circuit Diagram](www.falstad.com_circuit_circuitjs.html.circuit-20190218-2119.circuitjs.png)
 
 I laid it out with these IO from the esp8266 board:
 
