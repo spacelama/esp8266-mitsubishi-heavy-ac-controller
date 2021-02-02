@@ -53,7 +53,11 @@ before transferring it onto a [prototype board for the wifi mini](https://www.ja
 
 ## Usage
 
-Navigate to your wifi controller's IP address, perhaps piping it to a
+Navigate to your ac controller's address (obtained by DHCP if it
+successfully logs in via the credentials you supplied in template/Makefile, 
+find out what address it got associated with via your router's interface, 
+the esp8266's serial port output, or in the syslogs of the server you had 
+configured in template/Makefile), perhaps piping it to a
 password protected reverse-proxy on your house's publicly accessible
 web server (I know there's no input sanitising on any of the user
 parameters, which is why it's password protected and only handed to
