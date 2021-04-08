@@ -6,6 +6,8 @@ ESP_ADDR=ac
 USER_SRC_PATTERN = |ac.js
 USER_RULES=Makefile.extras
 
+EXCLUDE_DIRS=IRremoteESP8266/test/
+
 #ac.ajaxy.js.cpp : ac.ajaxy.js.cpp.include
 
 include $(HOME)/Arduino/template/Makefile

@@ -79,19 +79,27 @@ void sendIndexHTML() {
         "<p></p>\n"
 
         "<label for=\"slider_temp\">Temperature <span id=\"val_temp_html\">"+state.temp+"</span>:</label>"
+        "<button onclick=\"temp_down()\">-</button>"
         "<div id=\"ajaxsetpointtemp\" style=\"display:inline\"></div>"
+        "<button onclick=\"temp_up()\">+</button>"
         "<p></p>\n"
 
-        "<label for=\"slider_vdir\">Vdir <span id=\"val_vdir_html\" style=\"width:2em;display:inline-block;\">"+state.vdir+"</span>:</label>"
+        "<label for=\"slider_vdir\">Vdir <span id=\"val_vdir_html\" style=\"width:5em;display:inline-block;\">"+state.vdir+"</span>:</label>"
+        "<button onclick=\"vdir_down()\">-</button>"
         "<div id=\"ajaxvdir\" style=\"display:inline\"></div>"
+        "<button onclick=\"vdir_up()\">+</button>"
         "<p></p>\n"
 
-        "<label for=\"slider_hdir\">Hdir <span id=\"val_hdir_html\" style=\"width:2em;display:inline-block;\">"+state.hdir+"</span>:</label>"
+        "<label for=\"slider_hdir\">Hdir <span id=\"val_hdir_html\" style=\"width:5em;display:inline-block;\">"+state.hdir+"</span>:</label>"
+        "<button onclick=\"hdir_down()\">-</button>"
         "<div id=\"ajaxhdir\" style=\"display:inline\"></div>"
+        "<button onclick=\"hdir_up()\">+</button>"
         "<p></p>\n"
 
-        "<label for=\"slider_fan\">Fan speed <span id=\"val_fan_html\" style=\"width:2em;display:inline-block;\">"+state.fanspeed+"</span>:</label>"
+        "<label for=\"slider_fan\">Fan speed <span id=\"val_fan_html\" style=\"width:3em;display:inline-block;\">"+state.fanspeed+"</span>:</label>"
+        "<button onclick=\"fan_down()\">-</button>"
         "<div id=\"ajaxfanspeed\" style=\"display:inline\"></div>"
+        "<button onclick=\"fan_up()\">+</button>"
         "<p></p>\n"
 
         "Silent: "
@@ -141,40 +149,45 @@ bool setParameters(bool force=false) {
     bool changed=force;
 
     if (mode_p != "") {
-        syslog.log(LOG_INFO, "mode supplied");
         if (mode_p ==  "cool") {
             state.mode=MODE_COOL;
             state.temp=27;
             changed=true;
+            syslog.log(LOG_INFO, "mode=cool supplied");
         } else if (mode_p == "fan") {
             state.mode=MODE_FAN;
             changed=true;
+            syslog.log(LOG_INFO, "mode=fan supplied");
         } else if (mode_p == "heat") {
             state.mode=MODE_HEAT;
             state.temp=18;
             changed=true;
+            syslog.log(LOG_INFO, "mode=heat supplied");
         } else {
             error_str="Unknown mode supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid mode supplied");
         }
     }
 
     if (power_p >= 0) {
-        syslog.log(LOG_INFO, "power supplied");
         if (power_p == 0 || power_p == 1) {
             state.power = power_p;
             changed=true;
+            syslog.logf(LOG_INFO, "power=%s supplied", power_p ? "on":"off");
         } else {
             error_str="Unknown power supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid power supplied");
         }
     }
 
     if (temp_p >= 0) {
-        syslog.log(LOG_INFO, "temp supplied");
         if (temp_p >= 18 && temp_p <= 30) {
             state.temp = temp_p;
             changed=true;
+            syslog.logf(LOG_INFO, "temp=%d supplied",temp_p);
         } else {
             error_str="Unknown temp supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid temp supplied");
         }
     }
 
@@ -183,8 +196,10 @@ bool setParameters(bool force=false) {
         if (fan_p >= 0 && fan_p <= 3) {
             state.fanspeed = fan_p;
             changed=true;
+            syslog.logf(LOG_INFO, "fan=%d supplied",fan_p);
         } else {
-            error_str="Unknown power supplied<br>\n"+error_str;
+            error_str="Unknown fan supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid fan supplied");
         }
     } else {
         if (temp_p >= 0) {
@@ -207,42 +222,46 @@ bool setParameters(bool force=false) {
     }
 
     if (vdir_p >= 0) {
-        syslog.log(LOG_INFO, "vdir supplied");
         if (vdir_p >= 0 && vdir_p <= 6) {
             state.vdir = vdir_p;
             changed=true;
+            syslog.logf(LOG_INFO, "vdir=%d supplied", vdir_p);
         } else {
             error_str="Unknown vdir supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid vdir supplied");
         }
     }
 
     if (hdir_p >= 0) {
-        syslog.log(LOG_INFO, "hdir supplied");
         if (hdir_p >= 0 && hdir_p <= 6) {
             state.hdir = hdir_p;
             changed=true;
+            syslog.logf(LOG_INFO, "hdir=%d supplied",hdir_p);
         } else {
             error_str="Unknown hdir supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid hdir supplied");
         }
     }
 
     if (silent_p >= 0) {
-        syslog.log(LOG_INFO, "silent supplied");
         if (silent_p == 0 || silent_p == 1) {
             state.silent = silent_p;
             changed=true;
-        } else {
+            syslog.logf(LOG_INFO, "silent=%d supplied", silent_p);
+       } else {
             error_str="Unknown silent supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid silent supplied");
         }
     }
 
     if (_3d_p >= 0) {
-        syslog.log(LOG_INFO, "3d supplied");
         if (_3d_p == 0 || _3d_p == 1) {
             state._3d = _3d_p;
             changed=true;
+            syslog.logf(LOG_INFO, "3d=%d supplied", _3d_p);
         } else {
             error_str="Unknown 3d supplied<br>\n"+error_str;
+            syslog.log(LOG_INFO, "invalid 3d supplied");
         }
     }
 
@@ -338,6 +357,20 @@ void http_handle_not_found() {
     server.send(404, "text/plain", "File Not Found\n");
 }
 
+void http_start_stub() {
+    Serial.println("HTTP server extra setup");
+
+    server.on("/ac_on",       http_ac_on);
+    server.on("/heater_on",   http_heater_on);
+    server.on("/fan_on",      http_fan_on);
+    server.on("/off",         http_off);
+    server.on("/",            http_do);
+    server.on("/do",          http_do_action);
+    server.on("/ajaxy.js",    srv_handle_ajax_js);
+    server.on("/feedback.js", srv_handle_feedback_js);
+    server.on("/get",         srv_handle_ajax_get);
+}
+
 void setup_stub(void) {
     digitalWrite(D8, LOW);  // should be unused, reset pin, assign to known state
     digitalWrite(D4, HIGH); // should be unused, reset pin, assign to known state
@@ -359,18 +392,6 @@ void setup_stub(void) {
     ledRamp(led_range,0,1000,30);
 
     pinMode(IRLedPin, OUTPUT); // Sets the trigPin as an Output
-
-    Serial.println("HTTP server extra setup");
-
-    server.on("/ac_on",       http_ac_on);
-    server.on("/heater_on",   http_heater_on);
-    server.on("/fan_on",      http_fan_on);
-    server.on("/off",         http_off);
-    server.on("/",            http_do);
-    server.on("/do",          http_do_action);
-    server.on("/ajaxy.js",    srv_handle_ajax_js);
-    server.on("/feedback.js", srv_handle_feedback_js);
-    server.on("/get",         srv_handle_ajax_get);
 
     ledRamp(0,led_range,80,30);
 

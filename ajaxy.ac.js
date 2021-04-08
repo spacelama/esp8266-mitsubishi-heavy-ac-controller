@@ -50,6 +50,8 @@ function handleResponse(oResponse,action_response) {
     }
 }
 
+var last_updated=0;
+
 var power_last;
 var mode_last;
 var setpointtemp_last;
@@ -152,6 +154,62 @@ function populate_mode_field(mode) {
     }
 }
 
+
+function temp_down() {
+    let temp=Number(document.getElementById('slider_temp').value) - 1;
+    document.getElementById('slider_temp').value = temp;
+    refresh_handlers();
+    sendRequest('temp='+temp)
+}
+
+function temp_up() {
+    let temp=Number(document.getElementById('slider_temp').value) + 1;
+    document.getElementById('slider_temp').value = temp;
+    refresh_handlers();
+    sendRequest('temp='+temp)
+}
+
+function vdir_down() {
+    let vdir=Number(document.getElementById('slider_vdir').value) - 1;
+    document.getElementById('slider_vdir').value = vdir;
+    refresh_handlers();
+    sendRequest('vdir='+(6-vdir))
+}
+
+function vdir_up() {
+    let vdir=Number(document.getElementById('slider_vdir').value) + 1;
+    document.getElementById('slider_vdir').value = vdir;
+    refresh_handlers();
+    sendRequest('vdir='+(6-vdir))
+}
+
+function hdir_down() {
+    let hdir=Number(document.getElementById('slider_hdir').value) - 1;
+    document.getElementById('slider_hdir').value = hdir;
+    refresh_handlers();
+    sendRequest('hdir='+hdir)
+}
+
+function hdir_up() {
+    let hdir=Number(document.getElementById('slider_hdir').value) + 1;
+    document.getElementById('slider_hdir').value = hdir;
+    refresh_handlers();
+    sendRequest('hdir='+hdir)
+}
+
+function fan_down() {
+    let fan=Number(document.getElementById('slider_fan').value) - 1;
+    document.getElementById('slider_fan').value = fan;
+    refresh_handlers();
+    sendRequest('fan='+fan)
+}
+
+function fan_up() {
+    let fan=Number(document.getElementById('slider_fan').value) + 1;
+    document.getElementById('slider_fan').value = fan;
+    refresh_handlers();
+    sendRequest('fan='+fan)
+}
 
 function populate_temp_field(setpointtemp) {
     if (setpointtemp != setpointtemp_last) {
@@ -276,7 +334,6 @@ function populate_3d_field(_3d) {
     }
 }
 
-var last_updated=0;
 function parse_ajax(response) {
     let obj = JSON.parse(response);
     if (typeof obj.TLR !== 'undefined') {
