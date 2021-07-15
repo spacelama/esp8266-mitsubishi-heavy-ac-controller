@@ -343,6 +343,18 @@ void http_fan_on() {
     http_forcedo_and_redirect();
 }
 
+void http_up() {
+    state.temp++;
+
+    http_forcedo_and_redirect();
+}
+
+void http_down() {
+    state.temp--;
+
+    http_forcedo_and_redirect();
+}
+
 void http_off() {
     state.power=POWER_OFF;
 
@@ -363,6 +375,8 @@ void http_start_stub() {
     server.on("/ac_on",       http_ac_on);
     server.on("/heater_on",   http_heater_on);
     server.on("/fan_on",      http_fan_on);
+    server.on("/up",          http_up);
+    server.on("/down",        http_down);
     server.on("/off",         http_off);
     server.on("/",            http_do);
     server.on("/do",          http_do_action);
