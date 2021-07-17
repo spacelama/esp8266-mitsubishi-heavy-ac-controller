@@ -322,6 +322,12 @@ void http_forcedo_and_redirect() {
     server.send(303);                         // Send it back to the browser with an HTTP status 303 (See Other) to redirect
 }
 
+void http_on() {
+    state.power=POWER_ON;
+
+    http_forcedo_and_redirect();
+}
+
 void http_ac_on() {
     state.mode=MODE_COOL;
     state.power=POWER_ON;
@@ -372,6 +378,7 @@ void http_handle_not_found() {
 void http_start_stub() {
     Serial.println("HTTP server extra setup");
 
+    server.on("/on",          http_on);
     server.on("/ac_on",       http_ac_on);
     server.on("/heater_on",   http_heater_on);
     server.on("/fan_on",      http_fan_on);
