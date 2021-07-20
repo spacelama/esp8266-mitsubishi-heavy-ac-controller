@@ -95,9 +95,17 @@ indicating the AC is only acting as a fan.
 
 ## API
 
-You can GET/POST to "/off", "/ac_on", "/heater_on", "/fan_on".  You
+You can GET/POST to "/off", "/ac_on", "/heater_on", "/fan_on", "/on" (using last mode), 
+"/up", "/down" (you can make these handy bookmarks to be invoked by widgets on your phone).  You
 can set parameters "power", "mode", "temp", "vdir", "hdir", "fan",
 "silent", "3d" on any of actions or "/" (sends back the whole page) or
 "/do" (just an ajax action).
+
+Heuristics are set such that if the temperature is set, then the fan speed follows in a way that
+suit's my preferences.  The closer to "idle" the AC is asked to run, the fan speed is ramped down
+to the lowest speed.  The more demand is asked of it (on hot or very cold days), the fan speed is
+first set to higher speed, then reset back to AUTO so it runs harder if the AC decides it's
+necessary.  These heuristics don't act if "/up" and "/down" actions are invoked, since those are
+intended just for small comfort tweaks.
 
 You can read current paramters with GET "/get".
