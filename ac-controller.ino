@@ -117,6 +117,8 @@ void sendIndexHTML() {
 }
 
 void updateAC() {
+    logQuery();
+
     char *mode_str;
     switch (state.mode) {
       case MODE_COOL:
