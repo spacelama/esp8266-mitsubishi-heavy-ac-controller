@@ -99,10 +99,10 @@ function populate_power_field(power) {
 }
 
 function populate_mode_field(mode) {
-    let mode_str, mode_iscool_htmlstr="", mode_isfan_htmlstr="", mode_isheat_htmlstr="";
+    let mode_str, mode_iscool_htmlstr="", mode_isfan_htmlstr="", mode_isheat_htmlstr="", mode_isdehumidify_htmlstr="";
 
     switch (mode) {
-    case 3:
+    case 3: // get these values by setting them then seeing what `curl ac/get` returns
         mode_str="cool";
         mode_iscool_htmlstr="selected=\"selected\"";
         if (power_last == 1) {
@@ -113,6 +113,20 @@ function populate_mode_field(mode) {
                 bgcolour="#4444CC";
             } else {
                 bgcolour="#448888";
+            }
+        }
+        break;
+    case 4:
+        mode_str="dehumidify";
+        mode_isdehumidify_htmlstr="selected=\"selected\"";
+        if (power_last == 1) {
+            // if detect the current temp is such that AC isn't
+            // running, make the colour halfway between green (fan)
+            // and blue to indicate just blowing air
+            if (current_loungeroom_temp > setpointtemp_last) {
+                bgcolour="#4422CC";
+            } else {
+                bgcolour="#446688";
             }
         }
         break;
@@ -147,6 +161,7 @@ function populate_mode_field(mode) {
             "<option value=\"cool\" "+mode_iscool_htmlstr+">Cool</option>"+
             "<option value=\"fan\" " +mode_isfan_htmlstr +">Fan</option>" +
             "<option value=\"heat\" "+mode_isheat_htmlstr+">Heat</option>"+
+            "<option value=\"dehumidify\" "+mode_isdehumidify_htmlstr+">Dry</option>"+
             "</select><br>\n";
 
         mode_last=mode;

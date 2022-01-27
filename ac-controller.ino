@@ -130,6 +130,9 @@ void updateAC() {
       case MODE_HEAT:
           mode_str="heat";
           break;
+      case MODE_DRY:
+          mode_str="dehumidify";
+          break;
       default:
           mode_str="unknown";
     }
@@ -167,6 +170,11 @@ bool setParameters(bool force=false) {
             state.temp=18;
             changed=true;
             syslog.log(LOG_INFO, "mode=heat supplied");
+        } else if (mode_p == "dehumidify") {
+            state.mode=MODE_DRY;
+            state.temp=27;
+            changed=true;
+            syslog.log(LOG_INFO, "mode=dehumidify supplied");
         } else {
             error_str="Unknown mode supplied<br>\n"+error_str;
             syslog.log(LOG_INFO, "invalid mode supplied");
@@ -366,6 +374,13 @@ void http_fan_on() {
     http_forcedo_and_redirect();
 }
 
+void http_dehumidify_on() {
+    state.mode=MODE_DRY;
+    state.power=POWER_ON;
+
+    http_forcedo_and_redirect();
+}
+
 void http_toggle() {
     if (state.power == POWER_OFF) {
         state.power=POWER_ON;
@@ -409,6 +424,7 @@ void http_start_stub() {
     server.on("/ac_on",       http_ac_on);
     server.on("/heater_on",   http_heater_on);
     server.on("/fan_on",      http_fan_on);
+    server.on("/dry_on",      http_dehumidify_on);
     server.on("/up",          http_up);
     server.on("/down",        http_down);
     server.on("/off",         http_off);
