@@ -45,7 +45,7 @@ struct State {
     uint8_t fanspeed=FAN_AUTO;
     bool silent=0;
     bool _3d=0;
-} state;
+} state, previous_state;
 
 
 String error_str="";
@@ -150,6 +150,8 @@ bool setParameters(bool force=false) {
 
     bool changed=force;
 
+    previous_state = state;
+
     if (mode_p != "") {
         if (mode_p ==  "cool") {
             state.mode=MODE_COOL;
@@ -206,13 +208,26 @@ bool setParameters(bool force=false) {
     } else {
         if (temp_p >= 0) {
             if (state.temp >= 27) {
-                state.fanspeed = FAN_1;
+                if (state.temp > previous_state.temp) {
+                    state.fanspeed = FAN_1; // when ramping up temperature, slow the speed down to minimum
+                }
             } else if (state.temp >= 26) {
-                state.fanspeed = FAN_2;
+                if ((state.temp > previous_state.temp) ||
+                    (previous_state.fanspeed == FAN_1)) {
+                    state.fanspeed = FAN_2;
+                }
             } else if (state.temp >= 25) {
-                state.fanspeed = FAN_3;
+                if ((state.temp > previous_state.temp) ||
+                    (previous_state.fanspeed == FAN_1) ||
+                    (previous_state.fanspeed == FAN_2)) {
+                    state.fanspeed = FAN_3;
+                }
             } else if (state.temp <= 18) {
-                state.fanspeed = FAN_1;
+                if ((state.temp < previous_state.temp) ||
+                    (previous_state.fanspeed == FAN_2) ||
+                    (previous_state.fanspeed == FAN_3)) {
+                    state.fanspeed = FAN_1;
+                }
                 /* } else if (state.temp <= 19) {
                    state.fanspeed = FAN_2;
                    } else if (state.temp <= 20) {
