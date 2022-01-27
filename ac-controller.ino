@@ -351,6 +351,15 @@ void http_fan_on() {
     http_forcedo_and_redirect();
 }
 
+void http_toggle() {
+    if (state.power == POWER_OFF) {
+        state.power=POWER_ON;
+    } else {
+        state.power=POWER_OFF;
+    }
+    http_forcedo_and_redirect();
+}
+
 void http_up() {
     state.temp++;
 
@@ -380,6 +389,7 @@ void http_handle_not_found() {
 void http_start_stub() {
     Serial.println("HTTP server extra setup");
 
+    server.on("/toggle",      http_toggle);
     server.on("/on",          http_on);
     server.on("/ac_on",       http_ac_on);
     server.on("/heater_on",   http_heater_on);
