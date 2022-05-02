@@ -45,8 +45,8 @@ struct State {
     uint8_t fanspeed=FAN_AUTO;
     bool silent=0;
     bool _3d=0;
+    bool debug=0;
 } state, previous_state;
-
 
 String error_str="";
 
@@ -136,9 +136,11 @@ void updateAC() {
       default:
           mode_str="unknown";
     }
-    syslog.logf(LOG_INFO, "Power: %i, Mode: %s, Temp: %i, Vdir: %i, Hdir: %i, FanSpeed: %i, Silent: %i, 3D: %i", state.power, mode_str, state.temp, state.vdir, state.hdir, state.fanspeed, state.silent, state._3d);
+    syslog.logf(LOG_INFO, "Power: %i, Mode: %s, Temp: %i, Vdir: %i, Hdir: %i, FanSpeed: %i, Silent: %i, 3D: %i, debug: %i", state.power, mode_str, state.temp, state.vdir, state.hdir, state.fanspeed, state.silent, state._3d, state.debug);
     // Send the command
-    heatpump.send(irSender, state.power, state.mode, state.fanspeed, state.temp, state.vdir, state.hdir, 0, state.silent, state._3d);
+    if (! state.debug) {
+        heatpump.send(irSender, state.power, state.mode, state.fanspeed, state.temp, state.vdir, state.hdir, 0, state.silent, state._3d);
+    }
 }
 
 bool setParameters(bool force=false) {
@@ -175,6 +177,13 @@ bool setParameters(bool force=false) {
             state.temp=27;
             changed=true;
             syslog.log(LOG_INFO, "mode=dehumidify supplied");
+        } else if (mode_p == "auto") {
+            // We run the calculation ourselves and set an explicit
+            // mode rather than letting the AC go into actual auto
+            // mode
+            state.mode=MODE_AUTO;
+            changed=true;
+// LOG LATER:            syslog.log(LOG_INFO, "mode=auto supplied");
         } else {
             error_str="Unknown mode supplied<br>\n"+error_str;
             syslog.log(LOG_INFO, "invalid mode supplied");
@@ -290,6 +299,16 @@ bool setParameters(bool force=false) {
         }
     }
 
+    if (state.mode == MODE_AUTO) {
+        if (state.temp < 25) {
+            state.mode = MODE_HEAT;
+            syslog.log(LOG_INFO, "mode=auto supplied, heating at " + String(state.temp));
+        } else {
+            state.mode = MODE_COOL;
+            syslog.log(LOG_INFO, "mode=auto supplied, cooling at " + String(state.temp));
+        }
+        changed = true;
+    }
     if (changed) {
         write_eeprom_time=millis()+10000;
     }
@@ -316,6 +335,7 @@ void srv_handle_ajax_get() {
     state_json["fanspeed"]     = state.fanspeed;
     state_json["silent"]       = state.silent;
     state_json["3d"]           = state._3d;
+    state_json["debug"]        = state.debug;
 
     String jsonString = JSON.stringify(state_json);
 
@@ -408,8 +428,12 @@ void http_off() {
     http_forcedo_and_redirect();
 }
 
+void http_debug_toggle() {
+    state.debug = !state.debug;
+}
+
 String http_uptime_stub() {
-    return "";
+    return "debug: " + String(state.debug) + "\n";
 }
 
 void http_handle_not_found() {
@@ -433,6 +457,7 @@ void http_start_stub() {
     server.on("/ajaxy.js",    srv_handle_ajax_js);
     server.on("/feedback.js", srv_handle_feedback_js);
     server.on("/get",         srv_handle_ajax_get);
+    server.on("/debug",       http_debug_toggle);
 }
 
 void setup_stub(void) {
