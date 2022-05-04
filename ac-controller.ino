@@ -136,7 +136,7 @@ void updateAC() {
       default:
           mode_str="unknown";
     }
-    syslog.logf(LOG_INFO, "Power: %i, Mode: %s, Temp: %i, Vdir: %i, Hdir: %i, FanSpeed: %i, Silent: %i, 3D: %i, debug: %i", state.power, mode_str, state.temp, state.vdir, state.hdir, state.fanspeed, state.silent, state._3d, state.debug);
+    syslog.logf(LOG_INFO, "Power: %i, Mode: %s, Temp: %i, Vdir: %i, Hdir: %i, FanSpeed: %i, Silent: %s, 3D: %s, debug: %s", state.power, mode_str, state.temp, state.vdir, state.hdir, state.fanspeed, state.silent?"true":"false", state._3d?"true":"false", state.debug?"true":"false");
     // Send the command
     if (! state.debug) {
         heatpump.send(irSender, state.power, state.mode, state.fanspeed, state.temp, state.vdir, state.hdir, 0, state.silent, state._3d);
@@ -430,10 +430,11 @@ void http_off() {
 
 void http_debug_toggle() {
     state.debug = !state.debug;
+    http_forcedo_and_redirect();
 }
 
 String http_uptime_stub() {
-    return "debug: " + String(state.debug) + "\n";
+    return "debug: " + String(state.debug?"true":"false") + "\n";
 }
 
 void http_handle_not_found() {
