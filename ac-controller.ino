@@ -155,6 +155,8 @@ bool setParameters(bool force=false) {
 
     bool changed=force;
 
+    bool prev_mode=state.mode;
+
     previous_state = state;
 
     if (mode_p != "") {
@@ -300,14 +302,17 @@ bool setParameters(bool force=false) {
     }
 
     if (state.mode == MODE_AUTO) {
-        if (state.temp < 25) {
+        if ((state.temp <= 22) && (prev_mode == MODE_COOL)) {
             state.mode = MODE_HEAT;
             syslog.log(LOG_INFO, "mode=auto supplied, heating at " + String(state.temp));
-        } else {
+            changed = true;
+        } else if ((state.temp >= 25) && (prev_mode == MODE_HEAT)) {
             state.mode = MODE_COOL;
             syslog.log(LOG_INFO, "mode=auto supplied, cooling at " + String(state.temp));
+            changed = true;
+        } else {
+            state.mode = prev_mode;
         }
-        changed = true;
     }
     if (changed) {
         write_eeprom_time=millis()+10000;
