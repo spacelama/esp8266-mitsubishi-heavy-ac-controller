@@ -117,8 +117,6 @@ void sendIndexHTML() {
 }
 
 void updateAC() {
-    logQuery();
-
     char *mode_str;
     switch (state.mode) {
       case MODE_COOL:
@@ -133,6 +131,9 @@ void updateAC() {
       case MODE_DRY:
           mode_str="dehumidify";
           break;
+      case MODE_AUTO:
+          mode_str="auto (temporary only)";
+          break;
       default:
           mode_str="unknown";
     }
@@ -144,6 +145,8 @@ void updateAC() {
 }
 
 bool setParameters(bool force=false) {
+    logQuery();
+
     int power_p = getArgValue("power");
     String mode_p = getArgValueStr("mode");
     int temp_p = getArgValue("temp");
@@ -155,8 +158,6 @@ bool setParameters(bool force=false) {
 
     bool changed=force;
 
-    bool prev_mode=state.mode;
-
     previous_state = state;
 
     if (mode_p != "") {
@@ -164,27 +165,28 @@ bool setParameters(bool force=false) {
             state.mode=MODE_COOL;
             state.temp=27;
             changed=true;
-            syslog.log(LOG_INFO, "mode=cool supplied");
+            syslog.log(LOG_INFO, "mode=cool supplied (mode: " + String(previous_state.mode) + "->" + String(state.mode)+")");
         } else if (mode_p == "fan") {
             state.mode=MODE_FAN;
             changed=true;
-            syslog.log(LOG_INFO, "mode=fan supplied");
+            syslog.log(LOG_INFO, "mode=fan supplied (mode: " + String(previous_state.mode) + "->" + String(state.mode)+")");
         } else if (mode_p == "heat") {
             state.mode=MODE_HEAT;
             state.temp=18;
             changed=true;
-            syslog.log(LOG_INFO, "mode=heat supplied");
+            syslog.log(LOG_INFO, "mode=heat supplied (mode: " + String(previous_state.mode) + "->" + String(state.mode)+")");
         } else if (mode_p == "dehumidify") {
             state.mode=MODE_DRY;
             state.temp=27;
             changed=true;
-            syslog.log(LOG_INFO, "mode=dehumidify supplied");
+            syslog.log(LOG_INFO, "mode=dehumidify supplied (mode: " + String(previous_state.mode) + "->" + String(state.mode)+")");
         } else if (mode_p == "auto") {
             // We run the calculation ourselves and set an explicit
             // mode rather than letting the AC go into actual auto
             // mode
             state.mode=MODE_AUTO;
             changed=true;
+            syslog.log(LOG_INFO, "mode=auto supplied (mode: " + String(previous_state.mode) + "->" + String(state.mode)+")");
 // LOG LATER:            syslog.log(LOG_INFO, "mode=auto supplied");
         } else {
             error_str="Unknown mode supplied<br>\n"+error_str;
@@ -302,16 +304,17 @@ bool setParameters(bool force=false) {
     }
 
     if (state.mode == MODE_AUTO) {
-        if ((state.temp <= 22) && (prev_mode == MODE_COOL)) {
+        if ((state.temp <= 22) && (previous_state.mode == MODE_COOL)) {
             state.mode = MODE_HEAT;
-            syslog.log(LOG_INFO, "mode=auto supplied, heating at " + String(state.temp));
-            changed = true;
-        } else if ((state.temp >= 25) && (prev_mode == MODE_HEAT)) {
+            syslog.log(LOG_INFO, "mode=auto was supplied, heating at " + String(state.temp));
+            changed=true;
+        } else if ((state.temp >= 25) && (previous_state.mode == MODE_HEAT)) {
             state.mode = MODE_COOL;
-            syslog.log(LOG_INFO, "mode=auto supplied, cooling at " + String(state.temp));
-            changed = true;
+            syslog.log(LOG_INFO, "mode=auto was supplied, cooling at " + String(state.temp));
+            changed=true;
         } else {
-            state.mode = prev_mode;
+            state.mode = previous_state.mode;
+            syslog.log(LOG_INFO, "mode=was auto supplied, keeping mode at " + String(state.mode) + " with temp " + String(state.temp));
         }
     }
     if (changed) {
