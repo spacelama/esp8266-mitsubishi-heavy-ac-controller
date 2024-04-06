@@ -17,14 +17,21 @@ until commit fb748959db7b69f9353b6c052d0471d730cd6830 (HEAD, tag:
 5.4.3), because of bug
 https://github.com/plerup/makeEspArduino/issues/155
 
-Ensure the arduino GUI has downloaded HeatpumpIR library.
+Fire up an Arduino GUI and install these libraries:
+ - HeatpumpIR
 
-Download https://github.com/spacelama/template and copy
-template/Makefile.customise-and-move-to-Makefile to template/Makefile,
+Some common routines, makefile templates and syslog calls that all of my esp8266/32 devices use:
+ - https://github.com/spacelama/template
+ - https://github.com/spacelama/Syslog
+
+Install those in the parent directory to where you've downloaded this.
+
+Copy
+../template/Makefile.customise-and-move-to-Makefile to ../template/Makefile,
 customising the first 8 or so configuration parameters.
 
 First time around, you probably don't have an OTA-ready image flashed
-on your esp8266 board - so set `.DEFAULT_GOAL := flash` in Makefile.
+on your esp8266 board - so set `.DEFAULT_GOAL := flash` and if necessary, `UPLOAD_PORT := /dev/ttyUSB....` in Makefile.
 After the first successful flash, you'll probably find it more
 convenient to set that back to `.DEFAULT_GOAL := ota`.
 
