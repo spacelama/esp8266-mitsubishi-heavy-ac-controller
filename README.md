@@ -12,10 +12,9 @@ parameters).
 ## Install
 
 Compile on the commandline with
-https://github.com/plerup/makeEspArduino.git Currently works only up
-until commit fb748959db7b69f9353b6c052d0471d730cd6830 (HEAD, tag:
-5.4.3), because of bug
-https://github.com/plerup/makeEspArduino/issues/155
+https://github.com/plerup/makeEspArduino.git (Tested against tag:
+6.10.0, but you might have to tweak EXCLUDE_DIRS dependent upon what
+else you've downloaded in your Arduino installation)
 
 Fire up an Arduino GUI and install these libraries:
  - HeatpumpIR
